@@ -32,6 +32,7 @@ function operation() {
       } else if (action === "Depositar") {
         deposit();
       } else if (action === "Consultar Saldo") {
+        getAccountBalance();
       } else if (action === "Sacar") {
       } else if (action === "Sair") {
         console.log(chalk.bgBlue.black("Obrigado por usar o Bank!"));
@@ -140,21 +141,25 @@ function addAmount(accountName, amount) {
   const accountData = getAccount(accountName);
 
   if (!amount) {
-    console.log(chalk.bgRed.black("Ocorreu um erro tente novamente mais tarde"));
+    console.log(
+      chalk.bgRed.black("Ocorreu um erro tente novamente mais tarde")
+    );
     return deposit();
   }
 
-  accountData.balance = parseFloat(amount) + parseFloat(accountData.balance)
+  accountData.balance = parseFloat(amount) + parseFloat(accountData.balance);
 
   fs.writeFileSync(
     `accounts/${accountName}.json`,
     JSON.stringify(accountData),
-    function(err){
-      console.log(err)
+    function (err) {
+      console.log(err);
     }
-  )
+  );
 
-  console.log(chalk.green(`Foi depositado o valor de R$${amount} na sua conta!`))
+  console.log(
+    chalk.green(`Foi depositado o valor de R$${amount} na sua conta!`)
+  );
 }
 
 function getAccount(accountName) {
@@ -164,4 +169,35 @@ function getAccount(accountName) {
   });
 
   return JSON.parse(accountJSON);
+}
+
+// show account balance
+
+function getAccountBalance() {
+  inquirer
+    .prompt([
+      {
+        name: "accountName",
+        message: "Qual o nome da sua conta?",
+      },
+    ])
+    .then((answer) => {
+      const accountName = answer["accountName"];
+
+      // verify if account exists
+
+      if (!checkAccount(accountName)) {
+        return getAccountBalance();
+      }
+
+      const accountData = getAccount(accountName);
+
+      console.log(
+        chalk.bgBlue.black(
+          `Olá, o saldo da sua conta é R$${accountData.balance}`
+        )
+      )
+      operation()
+    })
+    .catch((err) => console.log(err));
 }
